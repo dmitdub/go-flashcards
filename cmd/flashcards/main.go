@@ -13,6 +13,9 @@ import (
 	core_pgx_pool "github.com/dmitdub/go-flashcards/internal/core/repository/postgres/pool/pgx"
 	core_http_middlware "github.com/dmitdub/go-flashcards/internal/core/transport/http/middleware"
 	core_http_server "github.com/dmitdub/go-flashcards/internal/core/transport/http/server"
+	cards_postgres_repository "github.com/dmitdub/go-flashcards/internal/features/cards/repository/postgres"
+	cards_service "github.com/dmitdub/go-flashcards/internal/features/cards/service"
+	cards_transport_http "github.com/dmitdub/go-flashcards/internal/features/cards/transport/http"
 	decks_postgres_repository "github.com/dmitdub/go-flashcards/internal/features/decks/repository/postgres"
 	decks_service "github.com/dmitdub/go-flashcards/internal/features/decks/service"
 	decks_transport_http "github.com/dmitdub/go-flashcards/internal/features/decks/transport/http"
@@ -61,6 +64,11 @@ func main() {
 	decksService := decks_service.NewDecksService(decksRepository)
 	decksTransportHTTP := decks_transport_http.NewDecksHTTPHandler(decksService)
 
+	logger.Debug("initializing feature", zap.String("feature", "cards"))
+	cardsRepository := cards_postgres_repository.NewCardsRepository(pool)
+	cardsService := cards_service.NewCardsService(cardsRepository)
+	cardsTransportHTTP := cards_transport_http.NewCardsHTTPHandler(cardsService)
+
 	logger.Debug("initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -73,6 +81,7 @@ func main() {
 	apiVersionRouterV1 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouterV1.RegisterRoutes(decksTransportHTTP.Routes()...)
+	apiVersionRouterV1.RegisterRoutes(cardsTransportHTTP.Routes()...)
 
 	httpServer.RegisterAPIRouters(apiVersionRouterV1)
 
