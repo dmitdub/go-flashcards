@@ -21,8 +21,8 @@ func (r *UsersRepository) PatchUser(
 	query := `
 	UPDATE flashcards.users
 	SET
-		nickname=$1
-		phone=$2
+		nickname=$1,
+		phone=$2,
 		version=version+1
 	WHERE id=$3 AND version=$4
 	RETURNING

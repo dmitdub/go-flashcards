@@ -1,4 +1,4 @@
-package decks_transport_http
+package cards_transport_http
 
 import (
 	"net/http"
@@ -9,20 +9,20 @@ import (
 	core_http_response "github.com/dmitdub/go-flashcards/internal/core/transport/http/response"
 )
 
-type CreateDeckRequest struct {
-	Title        string  `json:"title" validate:"required,min=1,max=100"`
-	Description  *string `json:"description" validate:"omitempty,min=1,max=500"`
-	AuthorUserID int     `json:"author_user_id" validate:"required"`
+type CreateCardRequest struct {
+	Front        string `json:"front" validate:"required,min=1,max=200"`
+	Back         string `json:"back" validate:"required,min=1,max=500"`
+	ParentDeckID int    `json:"parent_deck_id" validate:"required"`
 }
 
-type CreateDeckResponse DeckDTOResponse
+type CreateCardResponse CardDTOResponse
 
-func (h *DecksHTTPHandler) CreateDeck(rw http.ResponseWriter, r *http.Request) {
+func (h *CardsHTTPHandler) CreateCard(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewHTTPResponseHandler(log, rw)
 
-	var request CreateDeckRequest
+	var request CreateCardRequest
 	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
 		responseHandler.ErrorResponse(
 			err,
@@ -32,23 +32,23 @@ func (h *DecksHTTPHandler) CreateDeck(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deckDomain := domain.NewDeckUninitialized(
-		request.Title,
-		request.Description,
-		request.AuthorUserID,
+	cardDomain := domain.NewCardUninitialized(
+		request.Front,
+		request.Back,
+		request.ParentDeckID,
 	)
 
-	deckDomain, err := h.decksService.CreateDeck(ctx, deckDomain)
+	cardDomain, err := h.cardsService.CreateCard(ctx, cardDomain)
 	if err != nil {
 		responseHandler.ErrorResponse(
 			err,
-			"failed to create deck",
+			"failed to create card",
 		)
 
 		return
 	}
 
-	response := CreateDeckResponse(deckDTOFromDomain(deckDomain))
+	response := CreateCardResponse(cardDTOFromDomain(cardDomain))
 
 	responseHandler.JSONResponse(response, http.StatusCreated)
 }

@@ -32,7 +32,7 @@ func NewDeck(
 	}
 }
 
-func NewTaskUninitialized(
+func NewDeckUninitialized(
 	title string,
 	description *string,
 	authorUserID int,
